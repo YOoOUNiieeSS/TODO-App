@@ -21,7 +21,7 @@ class HomeLayout extends StatelessWidget {
         appBar: AppBar(
           title: Text(cubit.titles[cubit.currentIndex]),
         ),
-        body: cubit.tasks.length==0? Center(child: CircularProgressIndicator()):cubit.screens[cubit.currentIndex],
+        body: cubit.screens[cubit.currentIndex],
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: cubit.currentIndex,
           type: BottomNavigationBarType.fixed,

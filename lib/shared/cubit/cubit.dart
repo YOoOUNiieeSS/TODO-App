@@ -16,7 +16,7 @@ class AppCubit extends Cubit<AppStates>{
   List<String> titles = [
     'New Tasks',
     'Done Tasks',
-    'Archived Task9s',
+    'Archived Tasks',
   ];
   List<Widget> screens = [
     NewTaskScreen(),
@@ -31,7 +31,9 @@ class AppCubit extends Cubit<AppStates>{
   }
 
   Database? database;
-  List<Map> tasks=[];
+  List<Map> newTasks=[];
+  List<Map> doneTasks=[];
+  List<Map> archivedTasks=[];
   IconData fabIcon = Icons.edit;
   bool isBottomSheetShown = false;
 
@@ -46,11 +48,7 @@ class AppCubit extends Cubit<AppStates>{
             print('error when creating table ${e.toString()}');
           });
         }, onOpen: (database) async {
-          getDataFromDatabase(database).then((value) {
-            tasks=value;
-            print(tasks);
-            emit(AppGetDatabaseState());
-          });
+          getDataFromDatabase(database);
           print('database opened');
         }).then((value){
           database=value;
@@ -65,21 +63,49 @@ class AppCubit extends Cubit<AppStates>{
             .then((value) {
                print('$value inserted successfully');
                emit(AppInsertDatabaseState());
-               getDataFromDatabase(database!).then((value) {
-                 tasks=value;
-                 print(tasks);
-                 emit(AppGetDatabaseState());
-               });
+               getDataFromDatabase(database!);
             })
             .catchError((e) {
           print('error ${e.toString()}');
         }));
   }
 
-  Future<List<Map>> getDataFromDatabase(Database database)async{
-    return  await database.rawQuery('SELECT * FROM tasks');
+  void getDataFromDatabase(Database database){
+    database.rawQuery('SELECT * FROM tasks').then((value) {
+      newTasks=[];
+      archivedTasks=[];
+      doneTasks=[];
+      value.forEach((element) {
+        if(element['status']=='New')newTasks.add(element);
+        else if(element['status']=='done')doneTasks.add(element);
+        else archivedTasks.add(element);
+      });
+      print(newTasks);
+      emit(AppGetDatabaseState());
+    });
   }
 
+  void updateData({
+  required String status,required int id
+}){
+    database!.rawUpdate(
+        'UPDATE tasks SET status = ? WHERE id = ?',
+        ['$status', id]).then((value) {
+          emit(AppUpdateDatabaseState());
+          getDataFromDatabase(database!);
+    });
+}
+
+  void deleteData({
+    required int id
+  }){
+    database!.rawDelete(
+        'DELETE FROM tasks WHERE id = ?',
+        [id]).then((value) {
+      emit(AppDeleteDatabaseState());
+      getDataFromDatabase(database!);
+    });
+  }
   void changeBottomSheetState({
   required bool isShow,required IconData icon,
 }){
