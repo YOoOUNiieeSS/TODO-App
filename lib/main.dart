@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_app/shared/bloc_observer.dart';
+import 'package:todo_app/shared/cubit/cubit.dart';
 
 import 'layout/home_layout.dart';
 
@@ -14,7 +16,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeLayout(),
+      home: BlocProvider(
+        create: (context) => AppCubit()..createDatabase(),
+          child: HomeLayout()),
     );
   }
 }
